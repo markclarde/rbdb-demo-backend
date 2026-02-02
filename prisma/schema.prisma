@@ -12,4 +12,54 @@ model User {
   username  String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
+
+  profile Profile?
+
+  @@map("Users")
+}
+
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("Roles")
+}
+
+model Permission {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  roles RolePermission[]
+
+  @@map("Permissions")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("RolePermissions")
+}
+
+model Profile {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  firstName String?
+  lastName  String?
+  phone     String?
+
+  @@map("Profiles")
 }

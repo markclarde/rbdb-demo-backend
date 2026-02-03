@@ -10,20 +10,20 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(username: string, password: string) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    return this.prisma.user.create({
-      data: {
-        username,
-        password: hashedPassword,
-      },
-    });
-  }
-
   async login(username: string, password: string) {
     const user = await this.prisma.user.findUnique({
       where: { username },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -36,9 +36,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    const permissions = user.role.permissions.map(
+      (rp) => rp.permission.name,
+    );
+
     const payload = {
       sub: user.id,
       username: user.username,
+      role: user.role.name,
+      permissions,
     };
 
     return {

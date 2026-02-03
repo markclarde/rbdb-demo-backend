@@ -52,15 +52,15 @@ async function main() {
   for (const perm of permissions) {
     await prisma.rolePermission.upsert({
       where: {
-        roleId_permissionId: {
-          roleId: superAdminRole.id,
-          permissionId: perm.id,
+        role_id_permission_id: {
+          role_id: superAdminRole.id,
+          permission_id: perm.id,
         },
       },
       update: {},
       create: {
-        roleId: superAdminRole.id,
-        permissionId: perm.id,
+        role_id: superAdminRole.id,
+        permission_id: perm.id,
       },
     })
   }
@@ -73,15 +73,15 @@ async function main() {
   for (const perm of adminPermissions) {
     await prisma.rolePermission.upsert({
       where: {
-        roleId_permissionId: {
-          roleId: adminRole.id,
-          permissionId: perm.id,
+        role_id_permission_id: {
+          role_id: adminRole.id,
+          permission_id: perm.id,
         },
       },
       update: {},
       create: {
-        roleId: adminRole.id,
-        permissionId: perm.id,
+        role_id: adminRole.id,
+        permission_id: perm.id,
       },
     })
   }
@@ -94,15 +94,15 @@ async function main() {
   for (const perm of salesPermissions) {
     await prisma.rolePermission.upsert({
       where: {
-        roleId_permissionId: {
-          roleId: salesRole.id,
-          permissionId: perm.id,
+        role_id_permission_id: {
+          role_id: salesRole.id,
+          permission_id: perm.id,
         },
       },
       update: {},
       create: {
-        roleId: salesRole.id,
-        permissionId: perm.id,
+        role_id: salesRole.id,
+        permission_id: perm.id,
       },
     })
   }
@@ -115,17 +115,17 @@ async function main() {
     create: {
       username: "superadmin",
       password: hashedPassword,
-      roleId: superAdminRole.id,
+      role_id: superAdminRole.id,
     },
   })
 
   await prisma.profile.upsert({
-    where: { userId: superAdminUser.id },
+    where: { user_id: superAdminUser.id },
     update: {},
     create: {
-      userId: superAdminUser.id,
-      firstName: "System",
-      lastName: "Administrator",
+      user_id: superAdminUser.id,
+      first_name: "System",
+      last_name: "Administrator",
       phone: "0000000000",
     },
   })

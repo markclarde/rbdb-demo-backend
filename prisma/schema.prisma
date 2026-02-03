@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  password   String
+  created_at DateTime @default(now())
 
-  roleId Int
-  role   Role @relation(fields: [roleId], references: [id])
+  role_id Int
+  role    Role @relation(fields: [role_id], references: [id])
 
   profile Profile?
 
-  @@map("Users")
+  @@map("users")
 }
 
 model Role {
@@ -28,7 +28,7 @@ model Role {
   users       User[]
   permissions RolePermission[]
 
-  @@map("Roles")
+  @@map("roles")
 }
 
 model Permission {
@@ -38,28 +38,28 @@ model Permission {
 
   roles RolePermission[]
 
-  @@map("Permissions")
+  @@map("permissions")
 }
 
 model RolePermission {
-  roleId       Int
-  permissionId Int
+  role_id       Int
+  permission_id Int
 
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  role       Role       @relation(fields: [role_id], references: [id])
+  permission Permission @relation(fields: [permission_id], references: [id])
 
-  @@id([roleId, permissionId])
-  @@map("RolePermissions")
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
 }
 
 model Profile {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
+  id      Int  @id @default(autoincrement())
+  user_id Int  @unique
+  user    User @relation(fields: [user_id], references: [id])
 
-  firstName String?
-  lastName  String?
-  phone     String?
+  first_name String?
+  last_name  String?
+  phone      String?
 
-  @@map("Profiles")
+  @@map("profiles")
 }

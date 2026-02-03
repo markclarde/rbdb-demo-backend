@@ -25,31 +25,36 @@ async function main() {
   })
 
   const permissionsList = [
-    "user.read",
-    "user.create",
-    "user.update",
-    "user.delete",
-    "sales.read",
-    "sales.create",
-    "sales.update",
+    { name: "user.read", description: "View users" },
+    { name: "user.create", description: "Create users" },
+    { name: "user.update", description: "Update users" },
+    { name: "user.delete", description: "Delete users" },
+
+    { name: "sales.read", description: "View sales records" },
+    { name: "sales.create", description: "Create sales records" },
+    { name: "sales.update", description: "Update sales records" },
+    { name: "sales.delete", description: "Delete sales records" },
   ]
 
   const permissions: { id: number; name: string; description: string | null }[] = []
 
   for (const perm of permissionsList) {
     const permission = await prisma.permission.upsert({
-      where: { name: perm },
+      where: { name: perm.name },
       update: {},
       create: {
-        name: perm,
-        description: `${perm}_permission`,
+        name: perm.name,
+        description: perm.description,
       },
     })
+
     permissions.push(permission)
   }
 
-  // Super Admin → All permissions
-  for (const perm of permissions) {
+  // Super Admin → Always ALL permissions in DB
+  const allPermissions = await prisma.permission.findMany()
+
+  for (const perm of allPermissions) {
     await prisma.rolePermission.upsert({
       where: {
         role_id_permission_id: {
@@ -63,7 +68,7 @@ async function main() {
         permission_id: perm.id,
       },
     })
-  }
+  } 
 
   // Admin → Limited permissions
   const adminPermissions = permissions.filter(p =>

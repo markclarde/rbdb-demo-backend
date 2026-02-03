@@ -178,6 +178,7 @@ async function main() {
       email: "superadmin@example.com",
       password: hashedPassword,
       role_id: superAdminRole.id,
+      branch_id: davaoHeadOffice.id,
       status: UserStatus.ACTIVE,
     },
   });
@@ -190,7 +191,6 @@ async function main() {
       first_name: "System",
       last_name: "Administrator",
       phone: "0000000000",
-      branch_id: davaoHeadOffice.id,
     },
   });
 

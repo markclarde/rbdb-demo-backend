@@ -16,19 +16,22 @@ enum UserStatus {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  username   String     @unique
-  email      String     @unique
-  password   String
-  status     UserStatus @default(ACTIVE)
-  created_at DateTime   @default(now())
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  email    String @unique
+  password String
 
   role_id Int
   role    Role @relation(fields: [role_id], references: [id])
 
+  branch_id Int?
+  branch    Branch? @relation(fields: [branch_id], references: [id])
+
+  status UserStatus @default(ACTIVE)
+
   profile Profile?
 
-  @@map("users")
+  created_at DateTime @default(now())
 }
 
 model Role {
@@ -71,9 +74,6 @@ model Profile {
   last_name  String?
   phone      String?
 
-  branch_id Int?
-  branch    Branch? @relation(fields: [branch_id], references: [id])
-
   @@map("profiles")
 }
 
@@ -81,7 +81,7 @@ model Branch {
   id   Int    @id @default(autoincrement())
   name String @unique
 
-  profiles Profile[]
+  users User[]
 
   @@map("branches")
 }

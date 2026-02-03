@@ -2,18 +2,19 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async createAccount(currentUser: any, body: CreateUserDto) {
-    const { username, password, role_id, branch_id } = body;
+  async createUser(currentUser: any, body: CreateUserDto) {
+    const { username, password, role_id, branch_id, email } = body;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { username },
@@ -21,6 +22,16 @@ export class UsersService {
 
     if (existingUser) {
       throw new BadRequestException('Username already exists');
+    }
+
+    if (email) {
+      const emailExists = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (emailExists) {
+        throw new BadRequestException('Email already exists');
+      }
     }
 
     const roleExists = await this.prisma.role.findUnique({
@@ -32,12 +43,11 @@ export class UsersService {
     }
 
     if (branch_id) {
-      const hasBranchPermission = currentUser.permissions?.includes(
-        'BRANCH_ASSIGN',
-      );
+      const hasBranchPermission =
+        currentUser.permissions?.includes('BRANCH_ASSIGN');
 
       if (!hasBranchPermission) {
-        throw new BadRequestException(
+        throw new ForbiddenException(
           'You are not allowed to assign branch',
         );
       }
@@ -57,67 +67,64 @@ export class UsersService {
       const user = await tx.user.create({
         data: {
           username,
+          email,
           password: hashedPassword,
-          role_id: role_id,
+          role_id,
+          branch_id: branch_id ?? null,
         },
       });
 
       await tx.profile.create({
         data: {
           user_id: user.id,
-          branch_id: branch_id ?? null,
         },
       });
 
       return {
         id: user.id,
         username: user.username,
+        email: user.email,
         role_id: user.role_id,
-        branch_id: branch_id ?? null,
+        branch_id: user.branch_id,
       };
     });
   }
 
-  async updateProfile(userId: number, body: UpdateProfileDto) {
-    return this.prisma.$transaction(async (tx) => {
-      if (body.email) {
-        await tx.user.update({
-          where: { id: userId },
-          data: { email: body.email },
-        });
-      }
+  async updateUserBranch(
+    currentUser: any,
+    targetUserId: number,
+    branch_id: number,
+  ) {
+    if (!currentUser.permissions?.includes('BRANCH_ASSIGN')) {
+      throw new ForbiddenException('You are not allowed to assign branch');
+    }
 
-      const existingProfile = await tx.profile.findUnique({
-        where: { user_id: userId },
-      });
+    const branchExists = await this.prisma.branch.findUnique({
+      where: { id: branch_id },
+    });
 
-      if (existingProfile) {
-        return tx.profile.update({
-          where: { user_id: userId },
-          data: {
-            first_name: body.first_name,
-            last_name: body.last_name,
-            phone: body.phone,
-            branch_id: body.branch_id,
-          },
-          include: {
-            branch: true,
-          },
-        });
-      }
+    if (!branchExists) {
+      throw new NotFoundException('Branch not found');
+    }
 
-      return tx.profile.create({
-        data: {
-          user_id: userId,
-          first_name: body.first_name,
-          last_name: body.last_name,
-          phone: body.phone,
-          branch_id: body.branch_id,
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+
+    if (!userExists) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id: targetUserId },
+      data: { branch_id },
+      select: {
+        id: true,
+        username: true,
+        branch: {
+          select: { id: true, name: true },
         },
-        include: {
-          branch: true,
-        },
-      });
+      },
     });
   }
 

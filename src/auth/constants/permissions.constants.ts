@@ -6,4 +6,5 @@ export const PERMISSIONS = {
   SALES_READ: 'sales.read',
   SALES_CREATE: 'sales.create',
   SALES_UPDATE: 'sales.update',
+  SALES_DELETE: 'sales.delete',
 };

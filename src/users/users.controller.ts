@@ -8,24 +8,28 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { HasPermissions } from 'src/auth/decorators/permissions.decorator';
-import { PERMISSIONS } from 'src/auth/constants/permissions.constants';
-import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { HasPermissions } from '../auth/decorators/permissions.decorator';
+import { PERMISSIONS } from '../auth/constants/permissions.constants';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @UseGuards(PermissionsGuard)
   @HasPermissions(PERMISSIONS.USER_CREATE)
-  createUser(@Body() body: { username: string; password: string }) {
-    return this.usersService.createAccount(body.username, body.password);
+  createUser(@Body() body: CreateUserDto) {
+    return this.usersService.createAccount(
+      body.username,
+      body.password,
+      body.role_id,
+    );
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   getMe(@Req() req) {
     return req.user;
   }

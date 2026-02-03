@@ -1,5 +1,5 @@
 
-import { IsString, MinLength, IsInt } from 'class-validator';
+import { IsString, MinLength, IsInt, IsOptional, IsEnum } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -12,4 +12,13 @@ export class CreateUserDto {
 
   @IsInt()
   role_id: number;
+
+  @IsOptional()
+  @IsInt()
+  branch_id?: number;
+}
+
+export class UpdateUserStatusDto {
+  @IsEnum(UserStatus)
+  status: UserStatus;
 }

@@ -36,6 +36,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.status !== 'ACTIVE') {
+      throw new UnauthorizedException('Account is not active');
+    }
+
     const permissions = user.role.permissions.map(
       (rp) => rp.permission.name,
     );

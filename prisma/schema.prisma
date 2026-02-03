@@ -7,11 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+  LOCKED
+}
+
 model User {
-  id         Int      @id @default(autoincrement())
-  username   String   @unique
+  id         Int        @id @default(autoincrement())
+  username   String     @unique
+  email      String     @unique
   password   String
-  created_at DateTime @default(now())
+  status     UserStatus @default(ACTIVE)
+  created_at DateTime   @default(now())
 
   role_id Int
   role    Role @relation(fields: [role_id], references: [id])
@@ -61,5 +71,17 @@ model Profile {
   last_name  String?
   phone      String?
 
+  branch_id Int?
+  branch    Branch? @relation(fields: [branch_id], references: [id])
+
   @@map("profiles")
+}
+
+model Branch {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  profiles Profile[]
+
+  @@map("branches")
 }

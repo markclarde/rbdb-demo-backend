@@ -6,7 +6,11 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  login(@Body() body: { username: string; password: string }) {
-    return this.authService.login(body.username, body.password);
+  async login(@Body() body: { username: string; password: string; branch_id: number }) {
+    return this.authService.login(
+      body.username,
+      body.password,
+      body.branch_id,
+    );
   }
 }

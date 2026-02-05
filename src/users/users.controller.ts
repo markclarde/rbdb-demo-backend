@@ -17,34 +17,27 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @UseGuards(PermissionsGuard)
   @HasPermissions(PERMISSIONS.USER_CREATE)
   createUser(@Req() req, @Body() body: CreateUserDto) {
     return this.usersService.createUser(req.user, body);
   }
 
   @Patch(':id/branch')
-  @UseGuards(PermissionsGuard)
   @HasPermissions(PERMISSIONS.BRANCH_ASSIGN)
   updateBranch(
     @Req() req,
     @Param('id') id: string,
     @Body('branch_id') branch_id: number,
   ) {
-    return this.usersService.updateUserBranch(
-      req.user,
-      +id,
-      branch_id,
-    );
+    return this.usersService.updateUserBranch(req.user, +id, branch_id);
   }
 
   @Patch(':id/status')
-  @UseGuards(PermissionsGuard)
   @HasPermissions(PERMISSIONS.USER_STATUS_UPDATE)
   updateStatus(
     @Param('id') id: string,

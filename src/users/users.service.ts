@@ -13,6 +13,44 @@ import { UserStatus } from '@prisma/client';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
+  async getUsers() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        status: true,
+        created_at: true,
+
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        profile: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: {
+        created_at: 'desc',
+      },
+    });
+  }
+
   async createUser(currentUser: any, body: CreateUserDto) {
     const { username, password, role_id, branch_id, email } = body;
 

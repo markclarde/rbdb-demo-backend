@@ -21,6 +21,12 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get()
+  @HasPermissions(PERMISSIONS.USER_READ)
+  getUsers() {
+    return this.usersService.getUsers();
+  }
+
   @Post()
   @HasPermissions(PERMISSIONS.USER_CREATE)
   createUser(@Req() req, @Body() body: CreateUserDto) {

@@ -5,9 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BranchesService {
   constructor(private prisma: PrismaService) {}
 
-  async find_all() {
+  async getBranches() {
     return this.prisma.branch.findMany({
-      orderBy: { name: 'asc' },
+      orderBy: { name: 'desc' },
     });
   }
 }

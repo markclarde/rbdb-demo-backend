@@ -3,6 +3,13 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+function slugifyBranch(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
 async function main() {
   console.log("🌱 Starting seed...");
 
@@ -25,31 +32,42 @@ async function main() {
   });
 
   const permissionsList = [
-    { name: "USER_READ", description: "View users" },
-    { name: "USER_CREATE", description: "Create users" },
-    { name: "USER_UPDATE", description: "Update users" },
-    { name: "USER_DELETE", description: "Delete users" },
-    { name: "USER_STATUS_UPDATE", description: "Change user status" },
+    { name: "USER_READ", description: "View users", category: "User Management" },
+    { name: "USER_CREATE", description: "Create users", category: "User Management" },
+    { name: "USER_UPDATE", description: "Update users", category: "User Management" },
+    { name: "USER_DELETE", description: "Delete users", category: "User Management" },
+    { name: "USER_STATUS_UPDATE", description: "Change user status", category: "User Management" },
 
-    { name: "BRANCH_ASSIGN", description: "Assign branch to user" },
-    { name: "PROFILE_UPDATE", description: "Update own profile" },
+    { name: "BRANCH_ASSIGN", description: "Assign branch to user", category: "User Management" },
+    { name: "PROFILE_UPDATE", description: "Update own profile", category: "User Management" },
 
-    { name: "SALES_READ", description: "View sales records" },
-    { name: "SALES_CREATE", description: "Create sales records" },
-    { name: "SALES_UPDATE", description: "Update sales records" },
-    { name: "SALES_DELETE", description: "Delete sales records" },
+    { name: "QUOTATION_READ", description: "View quotations", category: "Quotations" },
+    { name: "QUOTATION_CREATE", description: "Create quotations", category: "Quotations" },
+    { name: "QUOTATION_UPDATE", description: "Update quotations", category: "Quotations" },
+    { name: "QUOTATION_DELETE", description: "Delete quotations", category: "Quotations" },
+
+    { name: "SYSTEM_LOG_READ", description: "View system logs", category: "System Logs" },
+    { name: "SYSTEM_LOG_EXPORT", description: "Export system logs", category: "System Logs" },
+
+    { name: "ROLE_READ", description: "View roles", category: "Role Management" },
+    { name: "ROLE_CREATE", description: "Create roles", category: "Role Management" },
+    { name: "ROLE_UPDATE", description: "Update roles", category: "Role Management" },
+    { name: "ROLE_DELETE", description: "Delete roles", category: "Role Management" },
+
+    { name: "PERMISSION_READ", description: "View permissions", category: "Permission Management" },
+    { name: "PERMISSION_CREATE", description: "Create permissions", category: "Permission Management" },
+    { name: "PERMISSION_UPDATE", description: "Update permissions", category: "Permission Management" },
+    { name: "PERMISSION_DELETE", description: "Delete permissions", category: "Permission Management" },
   ];
 
   const permissions: Permission[] = [];
 
   for (const perm of permissionsList) {
-    const permission = await prisma.permission.upsert({
+    await prisma.permission.upsert({
       where: { name: perm.name },
       update: {},
       create: perm,
     });
-
-    permissions.push(permission);
   }
 
   const allPermissions = await prisma.permission.findMany();
@@ -77,10 +95,13 @@ async function main() {
     "USER_STATUS_UPDATE",
     "BRANCH_ASSIGN",
     "PROFILE_UPDATE",
-    "SALES_READ",
+    "QUOTATION_READ",
+    "QUOTATION_CREATE",
+    "QUOTATION_UPDATE",
+    "QUOTATION_DELETE",
   ];
 
-  const adminPermissions = permissions.filter(p =>
+  const adminPermissions = allPermissions.filter(p =>
     adminPermissionNames.includes(p.name)
   );
 
@@ -102,11 +123,12 @@ async function main() {
 
   const salesPermissionNames = [
     "PROFILE_UPDATE",
-    "SALES_READ",
-    "SALES_CREATE",
+    "QUOTATION_READ",
+    "QUOTATION_CREATE",
+    "QUOTATION_UPDATE"
   ];
 
-  const salesPermissions = permissions.filter(p =>
+  const salesPermissions = allPermissions.filter(p =>
     salesPermissionNames.includes(p.name)
   );
 
@@ -193,6 +215,76 @@ async function main() {
       phone: "0000000000",
     },
   });
+
+  const defaultPassword = await bcrypt.hash("123", 10);
+
+  const branches = [
+    { branch: davaoHeadOffice, code: "dvo" },
+    { branch: airproManila, code: "mnl" },
+    { branch: daikinDavao, code: "dkdvo" },
+    { branch: airproPasig, code: "psg" },
+    { branch: airproDacudao, code: "dac" },
+    { branch: airproTalomo, code: "tlm" },
+    { branch: airproMintal, code: "mnt" },
+  ];
+
+  for (const { branch, code } of branches) {
+    // 👉 1 Admin per branch
+    const adminUsername = `adm_${code}`;
+
+    const adminUser = await prisma.user.upsert({
+      where: { username: adminUsername },
+      update: {},
+      create: {
+        username: adminUsername,
+        email: `${adminUsername}@app.com`,
+        password: defaultPassword,
+        role_id: adminRole.id,
+        branch_id: branch.id,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    await prisma.profile.upsert({
+      where: { user_id: adminUser.id },
+      update: {},
+      create: {
+        user_id: adminUser.id,
+        first_name: "Admin",
+        last_name: code.toUpperCase(),
+        phone: "09123456789",
+      },
+    });
+
+    // 👉 3 Sales per branch
+    for (let i = 1; i <= 3; i++) {
+      const salesUsername = `sal_${code}${i}`;
+
+      const salesUser = await prisma.user.upsert({
+        where: { username: salesUsername },
+        update: {},
+        create: {
+          username: salesUsername,
+          email: `${salesUsername}@app.com`,
+          password: defaultPassword,
+          role_id: salesRole.id,
+          branch_id: branch.id,
+          status: UserStatus.ACTIVE,
+        },
+      });
+
+      await prisma.profile.upsert({
+        where: { user_id: salesUser.id },
+        update: {},
+        create: {
+          user_id: salesUser.id,
+          first_name: "Sales",
+          last_name: `${code.toUpperCase()} ${i}`,
+          phone: "09987654321",
+        },
+      });
+    }
+  }
 
   console.log("✅ Seed completed successfully!");
 } 

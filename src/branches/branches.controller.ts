@@ -6,7 +6,7 @@ export class BranchesController {
   constructor(private readonly branches_service: BranchesService) {}
 
   @Get()
-  async get_all() {
-    return this.branches_service.find_all();
+  async getBranches() {
+    return this.branches_service.getBranches();
   }
 }

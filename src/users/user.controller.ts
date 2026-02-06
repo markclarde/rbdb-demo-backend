@@ -8,7 +8,7 @@ import {
   Patch,
   Param,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { HasPermissions } from '../auth/decorators/permissions.decorator';
@@ -18,8 +18,8 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+export class UserController {
+  constructor(private readonly usersService: UserService) {}
 
   @Get()
   @HasPermissions(PERMISSIONS.USER_READ)

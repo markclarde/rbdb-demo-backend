@@ -10,7 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserStatus } from '@prisma/client';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async getUsers() {

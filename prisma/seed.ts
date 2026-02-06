@@ -1,14 +1,7 @@
-import { PrismaClient, UserStatus, Permission } from "@prisma/client";
+import { PrismaClient, UserStatus, Permission, Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
-
-function slugifyBranch(name: string) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-}
 
 async function main() {
   console.log("🌱 Starting seed...");
@@ -286,8 +279,73 @@ async function main() {
     }
   }
 
+  const salesUsers = await prisma.user.findMany({
+    where: {
+      role: {
+        name: "sales_representative",
+      },
+    },
+  });
+
+  if (salesUsers.length === 0) {
+    console.log("⚠ No sales representatives found. Skipping quotations seed.");
+  } else {
+    console.log("📄 Seeding quotations...");
+
+    const sampleClients = [
+      "ABC Construction Corp",
+      "Juan Dela Cruz",
+      "Maria Santos Enterprises",
+      "Prime Builders Inc.",
+      "Golden Home Realty",
+      "Sunshine Trading",
+      "Evercool Air Systems",
+      "Northwind Developers",
+      "Skyline Residences",
+      "Metro Cooling Solutions",
+    ];
+
+    const statuses = ["PENDING", "NEGOTIATION", "APPROVED", "REJECTED"];
+
+    const generatedNumbers = new Set<string>();
+
+    function generateUniqueQuotationNumber(): string {
+      let number: string;
+
+      do {
+        const randomDigits = Math.floor(1000 + Math.random() * 9000); // ensures 4 digits
+        number = `DVO.SAM.EQTN.${randomDigits}`;
+      } while (generatedNumbers.has(number));
+
+      generatedNumbers.add(number);
+      return number;
+    }
+
+    for (let i = 0; i < 10; i++) {
+      const randomSales =
+        salesUsers[Math.floor(Math.random() * salesUsers.length)];
+
+      const quotationNumber = generateUniqueQuotationNumber();
+
+      await prisma.quotation.create({
+        data: {
+          quotation_number: quotationNumber,
+          client_name: sampleClients[i % sampleClients.length],
+          sales_representative_id: randomSales.id,
+          amount: new Prisma.Decimal(
+            (Math.random() * 500000 + 50000).toFixed(2)
+          ),
+          status: statuses[Math.floor(Math.random() * statuses.length)],
+          last_contact_at: new Date(
+            Date.now() - Math.floor(Math.random() * 10) * 86400000
+          ),
+        },
+      });
+    }
+  }
+
   console.log("✅ Seed completed successfully!");
-} 
+}
 
 main()
   .catch((e) => {

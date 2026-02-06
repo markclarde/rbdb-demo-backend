@@ -31,7 +31,8 @@ model User {
 
   profile Profile?
 
-  created_at DateTime @default(now())
+  created_at DateTime    @default(now())
+  quotations Quotation[]
 }
 
 model Role {
@@ -85,4 +86,20 @@ model Branch {
   users User[]
 
   @@map("branches")
+}
+
+model Quotation {
+  id                      Int       @id @default(autoincrement())
+  quotation_number        String    @unique
+  client_name             String
+  sales_representative_id Int
+  amount                  Decimal   @db.Decimal(12, 2)
+  status                  String
+  last_contact_at         DateTime?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+
+  sales_rep User @relation(fields: [sales_representative_id], references: [id])
+
+  @@map("quotations")
 }

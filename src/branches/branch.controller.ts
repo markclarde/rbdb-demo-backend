@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { BranchesService } from './branches.service';
+import { BranchesService } from './branch.service';
 
 @Controller('branches')
 export class BranchesController {

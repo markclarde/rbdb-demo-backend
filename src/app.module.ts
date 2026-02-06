@@ -3,8 +3,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { ProfileModule } from './profile/profile.module';
-import { BranchesModule } from './branches/branches.module';
+import { ProfilesModule } from './profiles/profile.module';
+import { BranchesModule } from './branches/branch.module';
+import { QuotationsModule } from './quotations/quotation.module';
 
 @Module({
   imports: [
@@ -14,8 +15,9 @@ import { BranchesModule } from './branches/branches.module';
     PrismaModule,
     AuthModule,
     UsersModule,
-    ProfileModule,
+    ProfilesModule,
     BranchesModule,
+    QuotationsModule,
   ],
 })
 export class AppModule {}
